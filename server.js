@@ -2,6 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { generateAllPublicJson } = require('./utils/excel');
+
+// Generate static JSON files on startup so local dev matches GitHub Pages
+try { generateAllPublicJson(); } catch (e) { console.warn('JSON generation skipped:', e.message); }
 
 const app = express();
 

@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const authMiddleware = require('../middleware/auth');
+const { generateAllPublicJson } = require('../utils/excel');
 
 const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
 
@@ -20,6 +21,7 @@ router.put('/', authMiddleware, (req, res) => {
     const current = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     const updated = { ...current, ...req.body };
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(updated, null, 2), 'utf8');
+    try { generateAllPublicJson(); } catch {}
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,12 +1,13 @@
 /* =========================================================
-   ProfApp — Public Portfolio JS
+   ProfApp — Public Portfolio JS (fetches static JSON files)
    ========================================================= */
 
-const API = '';  // same-origin
+// Relative path — works on both localhost:3000 and GitHub Pages /profapp/
+const DATA = './data';
 
-async function api(path) {
-  const r = await fetch(API + path);
-  if (!r.ok) throw new Error(await r.text());
+async function fetchJson(file) {
+  const r = await fetch(`${DATA}/${file}`);
+  if (!r.ok) throw new Error(`Failed to load ${file}`);
   return r.json();
 }
 
@@ -25,7 +26,7 @@ function animateCount(el, target) {
 
 // ── Badge helpers ─────────────────────────────────────────
 function ratingBadge(r) {
-  if (!r) return '';
+  if (!r || r === '-') return '';
   const cls = r === 'A*' ? 'badge-gold' : r === 'A' ? 'badge-navy' : r === 'B' ? 'badge-blue' : 'badge-gray';
   return `<span class="badge ${cls}">ABDC ${r}</span>`;
 }
@@ -39,19 +40,19 @@ function scopusBadge(v) {
 function statusBadge(s) {
   if (!s) return '';
   const sl = String(s).toLowerCase();
-  if (sl.includes('approv') || sl.includes('sanctioned') || sl.includes('completed'))
+  if (sl.includes('approv') || sl.includes('sanctioned') || sl.includes('complete'))
     return `<span class="badge badge-green">${s}</span>`;
-  if (sl.includes('reject') || sl.includes('withdrawn') || sl.includes('not'))
+  if (sl.includes('reject') || sl.includes('not shortlist'))
     return `<span class="badge badge-red">${s}</span>`;
   if (sl.includes('progress') || sl.includes('ongoing') || sl.includes('review'))
     return `<span class="badge badge-blue">${s}</span>`;
   return `<span class="badge badge-gray">${s}</span>`;
 }
-function clean(v) { return v && v !== 'null' ? String(v).trim() : ''; }
+function clean(v) { return v && v !== 'null' && v !== '-' ? String(v).trim() : ''; }
 
 // ── Config / Hero ─────────────────────────────────────────
 async function loadConfig() {
-  const cfg = await api('/api/config');
+  const cfg = await fetchJson('config.json');
 
   document.title = cfg.name + ' | Academic Portfolio';
   document.getElementById('nav-name').textContent = cfg.shortName || cfg.name;
@@ -70,26 +71,22 @@ async function loadConfig() {
     document.getElementById('heroPhoto').innerHTML = `<img src="${cfg.photo}" alt="${cfg.name}">`;
   }
 
-  // Research interest tags
   const tags = document.getElementById('heroTags');
   (cfg.researchInterests || []).forEach(r => {
     tags.insertAdjacentHTML('beforeend', `<span class="hero-tag">${r}</span>`);
   });
 
-  // Interest list
   const list = document.getElementById('interestsList');
   (cfg.researchInterests || []).forEach(r => {
     list.insertAdjacentHTML('beforeend', `<li>${r}</li>`);
   });
 
-  // CV & links
   const btns = document.getElementById('heroBtns');
   if (cfg.cvLink) {
     btns.insertAdjacentHTML('beforeend',
       `<a href="${cfg.cvLink}" class="btn btn-outline" target="_blank">Download CV</a>`);
   }
 
-  // Contact links
   const cl = document.getElementById('contactLinks');
   const addLink = (icon, label, href) => {
     cl.insertAdjacentHTML('beforeend', `
@@ -97,19 +94,17 @@ async function loadConfig() {
         <span class="contact-icon">${icon}</span>${label}
       </a></li>`);
   };
-  if (cfg.email) addLink('✉', cfg.email, `mailto:${cfg.email}`);
-  if (cfg.googleScholar) addLink('🎓', 'Google Scholar', cfg.googleScholar);
-  if (cfg.orcid) addLink('🆔', 'ORCID', cfg.orcid);
-  if (cfg.linkedin) addLink('💼', 'LinkedIn', cfg.linkedin);
-  if (cfg.researchgate) addLink('🔬', 'ResearchGate', cfg.researchgate);
-  if (cfg.officialWebsite) addLink('🌐', 'Official Website', cfg.officialWebsite);
-
-  return cfg;
+  if (cfg.email)          addLink('✉', cfg.email, `mailto:${cfg.email}`);
+  if (cfg.googleScholar)  addLink('🎓', 'Google Scholar', cfg.googleScholar);
+  if (cfg.orcid)          addLink('🆔', 'ORCID', cfg.orcid);
+  if (cfg.linkedin)       addLink('💼', 'LinkedIn', cfg.linkedin);
+  if (cfg.researchgate)   addLink('🔬', 'ResearchGate', cfg.researchgate);
+  if (cfg.officialWebsite)addLink('🌐', 'Official Website', cfg.officialWebsite);
 }
 
 // ── Publications ──────────────────────────────────────────
 async function loadPublications() {
-  const { rows } = await api('/api/data/Published');
+  const { rows } = await fetchJson('Published.json');
   const panel = document.getElementById('panel-journal');
   panel.innerHTML = '';
 
@@ -123,7 +118,7 @@ async function loadPublications() {
     const vol   = clean(r['Vol/Year']);
     const doi   = clean(r['DOI']);
     const abdc  = clean(r['ABDC Rating']);
-    const scopus = clean(r['SSCI/Scopus']);
+    const scopus= clean(r['SSCI/Scopus']);
     const qx    = clean(r['SCImago Qx']);
 
     panel.insertAdjacentHTML('beforeend', `
@@ -139,13 +134,12 @@ async function loadPublications() {
         </div>
       </div>`);
   });
-
   animateCount(document.getElementById('statPub'), rows.length);
 }
 
 // ── Book Chapters ─────────────────────────────────────────
 async function loadChapters() {
-  const { rows } = await api('/api/data/Book%20Chapter');
+  const { rows } = await fetchJson('Book_Chapter.json');
   const panel = document.getElementById('panel-chapters');
   panel.innerHTML = '';
 
@@ -171,13 +165,12 @@ async function loadChapters() {
         </div>
       </div>`);
   });
-
   animateCount(document.getElementById('statChap'), validRows.length);
 }
 
 // ── Projects ──────────────────────────────────────────────
 async function loadProjects() {
-  const { rows } = await api('/api/data/Projects');
+  const { rows } = await fetchJson('Projects.json');
   const grid = document.getElementById('projGrid');
   grid.innerHTML = '';
 
@@ -198,18 +191,17 @@ async function loadProjects() {
         <div class="proj-title">${title}</div>
         <div class="proj-role">Role: ${role}</div>
         <div class="proj-footer">
-          <div style="font-size:0.78rem;color:var(--muted)">${amount ? '💰 ' + amount : ''}${duration ? ' · ' + duration + ' mo.' : ''}</div>
+          <div style="font-size:.78rem;color:var(--muted)">${amount ? '💰 ' + amount : ''}${duration ? ' · ' + duration + ' mo.' : ''}</div>
           ${statusBadge(status)}
         </div>
       </div>`);
   });
-
   animateCount(document.getElementById('statProj'), validRows.length);
 }
 
 // ── Conferences ───────────────────────────────────────────
 async function loadConferences() {
-  const { rows } = await api('/api/data/Conferences');
+  const { rows } = await fetchJson('Conferences.json');
   const list = document.getElementById('confList');
   list.innerHTML = '';
 
@@ -238,18 +230,20 @@ async function loadConferences() {
         </div>
       </li>`);
   });
-
   animateCount(document.getElementById('statConf'), rows.length);
 }
 
 // ── PhD Supervision ───────────────────────────────────────
 async function loadPhd() {
-  const { rows } = await api('/api/data/PhD%20Supervision');
+  const { rows } = await fetchJson('PhD_Supervision.json');
   const tbody = document.getElementById('phdBody');
   tbody.innerHTML = '';
 
   const validRows = rows.filter(r => clean(r['Name']));
-  if (!validRows.length) { tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center">No records found.</td></tr>'; return; }
+  if (!validRows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center">No records found.</td></tr>';
+    return;
+  }
 
   validRows.forEach((r, i) => {
     const name  = clean(r['Name']);
@@ -261,7 +255,10 @@ async function loadPhd() {
     const rem   = clean(r['Remarks']);
     const sno   = clean(r['S. No.']) || (i + 1);
 
-    const status = def ? `<span class="badge badge-green">Defended</span>` : rem ? `<span class="badge badge-blue">${rem}</span>` : `<span class="badge badge-gray">Ongoing</span>`;
+    const status = def
+      ? `<span class="badge badge-green">Defended</span>`
+      : rem ? `<span class="badge badge-blue">${rem}</span>`
+      : `<span class="badge badge-gray">Ongoing</span>`;
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
@@ -274,13 +271,12 @@ async function loadPhd() {
         <td>${status}</td>
       </tr>`);
   });
-
   animateCount(document.getElementById('statPhd'), validRows.length);
 }
 
 // ── Admin Responsibilities ────────────────────────────────
 async function loadAdmin() {
-  const { rows } = await api('/api/data/Admin-Addl.');
+  const { rows } = await fetchJson('Admin-Addl.json');
   const grid = document.getElementById('adminGrid');
   grid.innerHTML = '';
 
@@ -288,10 +284,10 @@ async function loadAdmin() {
   if (!validRows.length) { grid.innerHTML = '<p style="color:var(--muted)">No records found.</p>'; return; }
 
   validRows.forEach(r => {
-    const duty  = clean(r['Duties/In-charge']);
-    const inst  = clean(r['Institute']);
-    const from  = clean(r['From Date']);
-    const to    = clean(r['To Date']);
+    const duty   = clean(r['Duties/In-charge']);
+    const inst   = clean(r['Institute']);
+    const from   = clean(r['From Date']);
+    const to     = clean(r['To Date']);
     const period = [from, to].filter(Boolean).join(' – ');
 
     grid.insertAdjacentHTML('beforeend', `
@@ -305,14 +301,13 @@ async function loadAdmin() {
 
 // ── Education ─────────────────────────────────────────────
 async function loadEducation() {
-  const { rows } = await api('/api/data/Academic');
+  const { rows } = await fetchJson('Academic.json');
   const tl = document.getElementById('eduTimeline');
   tl.innerHTML = '';
 
   const validRows = rows.filter(r => clean(r['Exam/Qualification']));
   if (!validRows.length) { tl.innerHTML = '<p style="color:var(--muted)">No records found.</p>'; return; }
 
-  // Show in reverse order (latest first)
   [...validRows].reverse().forEach(r => {
     const deg   = clean(r['Exam/Qualification']);
     const inst  = clean(r['Institute/Organization Name']);
@@ -351,18 +346,15 @@ document.querySelectorAll('#navLinks a').forEach(a => {
 const sections = document.querySelectorAll('section[id]');
 window.addEventListener('scroll', () => {
   let cur = '';
-  sections.forEach(s => {
-    if (window.scrollY >= s.offsetTop - 80) cur = s.id;
-  });
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id; });
   document.querySelectorAll('#navLinks a').forEach(a => {
     a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
   });
 });
 
-// ── Bootstrap all ────────────────────────────────────────
+// ── Bootstrap all ─────────────────────────────────────────
 (async function init() {
   try { await loadConfig(); } catch (e) { console.warn('Config load failed:', e); }
-
-  const loaders = [loadPublications, loadChapters, loadProjects, loadConferences, loadPhd, loadAdmin, loadEducation];
-  loaders.forEach(fn => fn().catch(e => console.warn(fn.name, e)));
+  [loadPublications, loadChapters, loadProjects, loadConferences, loadPhd, loadAdmin, loadEducation]
+    .forEach(fn => fn().catch(e => console.warn(fn.name, e)));
 })();

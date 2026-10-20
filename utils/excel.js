@@ -1,8 +1,21 @@
 const xlsx = require('xlsx');
 const path = require('path');
+const fs = require('fs');
 const { randomUUID } = require('crypto');
 
 const EXCEL_PATH = path.join(__dirname, '..', 'Work_Track.xlsx');
+const DATA_DIR = path.join(__dirname, '..', 'public', 'data');
+
+// Maps sheet names to their static JSON filenames
+const SHEET_FILES = {
+  'Published':        'Published.json',
+  'Book Chapter':     'Book_Chapter.json',
+  'Conferences':      'Conferences.json',
+  'Projects':         'Projects.json',
+  'PhD Supervision':  'PhD_Supervision.json',
+  'Academic':         'Academic.json',
+  'Admin-Addl.':      'Admin-Addl.json'
+};
 
 // headerRow: index of the row containing column headers (0-based)
 const SHEET_CONFIG = {
@@ -157,4 +170,23 @@ function deleteRow(sheetName, id) {
   delete _rowMap[sheetName][id];
 }
 
-module.exports = { getSheetNames, readSheet, updateRow, addRow, deleteRow, PUBLIC_SHEETS };
+// ── Static JSON generation ────────────────────────────────
+function generateSheetJson(sheetName) {
+  if (!SHEET_FILES[sheetName]) return;
+  const { headers, rows } = readSheet(sheetName);
+  const cleanRows = rows.map(({ _id, ...rest }) => rest);
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(
+    path.join(DATA_DIR, SHEET_FILES[sheetName]),
+    JSON.stringify({ headers, rows: cleanRows })
+  );
+}
+
+function generateAllPublicJson() {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  PUBLIC_SHEETS.forEach(s => generateSheetJson(s));
+  fs.copyFileSync(path.join(__dirname, '..', 'config.json'), path.join(DATA_DIR, 'config.json'));
+  console.log('Static JSON files generated in public/data/');
+}
+
+module.exports = { getSheetNames, readSheet, updateRow, addRow, deleteRow, PUBLIC_SHEETS, SHEET_FILES, generateSheetJson, generateAllPublicJson };

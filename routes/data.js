@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
-const { getSheetNames, readSheet, updateRow, addRow, deleteRow, PUBLIC_SHEETS } = require('../utils/excel');
+const { getSheetNames, readSheet, updateRow, addRow, deleteRow, PUBLIC_SHEETS, generateSheetJson } = require('../utils/excel');
+const _regen = s => { try { generateSheetJson(s); } catch {} };
 
 // GET list of sheets (public: only public sheets; admin: all)
 router.get('/sheets', (req, res) => {
@@ -48,6 +49,7 @@ router.post('/:sheet', authMiddleware, (req, res) => {
   const sheetName = decodeURIComponent(req.params.sheet);
   try {
     const newIndex = addRow(sheetName, req.body);
+    _regen(sheetName);
     res.json({ success: true, rowIndex: newIndex });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -60,6 +62,7 @@ router.put('/:sheet/:id', authMiddleware, (req, res) => {
   const id = req.params.id;
   try {
     updateRow(sheetName, id, req.body);
+    _regen(sheetName);
     res.json({ success: true });
   } catch (err) {
     res.status(404).json({ error: err.message });
@@ -72,6 +75,7 @@ router.delete('/:sheet/:id', authMiddleware, (req, res) => {
   const id = req.params.id;
   try {
     deleteRow(sheetName, id);
+    _regen(sheetName);
     res.json({ success: true });
   } catch (err) {
     res.status(404).json({ error: err.message });
