@@ -147,6 +147,7 @@ a:hover { text-decoration: underline; }
   font-size: 2.3rem; font-weight: 600; letter-spacing: -0.5px;
   color: var(--ink); margin-bottom: 4px;
 }
+.hero-cred { font-size: 0.84rem; color: var(--ink-3); margin-top: 5px; letter-spacing: 0.2px; }
 .hero-inst { font-size: 0.88rem; color: var(--ink-2); margin-bottom: 18px; line-height: 1.5; }
 .hero-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 22px; }
 .hero-tag {
@@ -320,6 +321,21 @@ a:hover { text-decoration: underline; }
   background: #0E0E0C; color: rgba(255,255,255,.28);
   text-align: center; padding: 14px; font-size: 0.72rem;
   border-top: 1px solid rgba(255,255,255,.05);
+}
+
+/* ── Home page contact sidebar ── */
+.home-contact { list-style: none; }
+.home-contact li { margin-bottom: 8px; }
+.home-contact a {
+  color: var(--ink-2); display: flex; align-items: center;
+  gap: 9px; font-size: 0.83rem; transition: color .15s;
+}
+.home-contact a:hover { color: var(--red); text-decoration: none; }
+.home-contact .contact-icon {
+  width: 26px; height: 26px; border-radius: 3px;
+  background: var(--paper-3); display: flex; align-items: center;
+  justify-content: center; font-size: 0.8rem; flex-shrink: 0;
+  border: 1px solid var(--border);
 }
 
 /* ── Login button + auth nav ── */
