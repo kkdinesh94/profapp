@@ -14,7 +14,7 @@
 <!-- ── Navbar ── -->
 <nav id="navbar">
   <div class="nav-inner">
-    <span class="nav-brand" id="nav-name">Academic Portfolio</span>
+    <a class="nav-brand" id="nav-name" href="#" data-navto="home">Prof. K. Dinesh</a>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
@@ -23,7 +23,7 @@
       <li><a href="#publications" data-page="publications">Publications</a></li>
       <li><a href="#projects"     data-page="projects">Projects</a></li>
       <li><a href="#conferences"  data-page="conferences">Conferences</a></li>
-      <li><a href="#phd"          data-page="phd">PhD Students</a></li>
+      <li><a href="#phd"          data-page="phd">Team</a></li>
       <li><a href="#background"   data-page="background">Background</a></li>
       <li><a href="#contact"      data-page="contact">Contact</a></li>
       <li id="navPortalItem" style="display:none"><a href="#portal" data-page="portal">Portal</a></li>
@@ -54,7 +54,6 @@
           <div class="hero-meta" id="heroTitle">Faculty · Department of Management Studies</div>
           <h1 class="hero-name" id="heroName">Loading…</h1>
           <div class="hero-inst" id="heroInst"></div>
-          <div class="hero-tags" id="heroTags"></div>
           <div class="hero-btns" id="heroBtns">
             <button class="btn btn-dark" data-navto="publications">View Publications</button>
             <button class="btn btn-outline" data-navto="contact">Contact</button>
@@ -63,18 +62,6 @@
       </div>
     </div>
   </section>
-
-  <div id="stats">
-    <div class="container">
-      <div class="stats-row">
-        <div class="stat-item"><div class="stat-num" id="statPub">—</div><div class="stat-lbl">Journal Articles</div></div>
-        <div class="stat-item"><div class="stat-num" id="statChap">—</div><div class="stat-lbl">Book Chapters</div></div>
-        <div class="stat-item"><div class="stat-num" id="statConf">—</div><div class="stat-lbl">Conferences</div></div>
-        <div class="stat-item"><div class="stat-num" id="statProj">—</div><div class="stat-lbl">Research Projects</div></div>
-        <div class="stat-item"><div class="stat-num" id="statPhd">—</div><div class="stat-lbl">PhD Students</div></div>
-      </div>
-    </div>
-  </div>
 
   <section id="about">
     <div class="container">
@@ -166,31 +153,84 @@
 </div><!-- /page-conferences -->
 
 <!-- ══════════════════════════════════════════════════════
-     PAGE: PhD SUPERVISION
+     PAGE: TEAM
      ══════════════════════════════════════════════════════ -->
 <div class="page" id="page-phd">
 
   <div class="page-header">
     <div class="container">
-      <h2 class="page-title"><span>PhD Supervision</span></h2>
-      <p class="page-sub">Doctoral students guided as supervisor / co-supervisor</p>
+      <h2 class="page-title"><span>Research Team</span></h2>
+      <p class="page-sub">PhD scholars, master's students, and research assistants</p>
     </div>
   </div>
 
   <div class="page-body">
     <div class="container">
-      <div class="table-wrap">
-        <table class="phd-table">
-          <thead>
-            <tr>
+      <div class="inner-tabs">
+        <button class="inner-tab active" data-tab="phd-scholars">PhD Scholars</button>
+        <button class="inner-tab" data-tab="masters">Master's Thesis</button>
+        <button class="inner-tab" data-tab="ra">Research Assistants</button>
+        <button class="inner-tab" data-tab="rassoc">Research Associates</button>
+      </div>
+
+      <!-- PhD Scholars -->
+      <div class="inner-panel active" id="panel-phd-scholars">
+        <div class="table-wrap">
+          <table class="phd-table">
+            <thead><tr>
               <th>#</th><th>Name</th><th>Type</th><th>Research Title</th>
-              <th>Role</th><th>Co-Supervisor</th><th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="phdBody">
-            <tr><td colspan="7" class="loading">Loading…</td></tr>
-          </tbody>
-        </table>
+              <th>My Role</th><th>Co-Supervisor</th><th>Status</th>
+            </tr></thead>
+            <tbody id="phdBody">
+              <tr><td colspan="7" class="loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Master's Thesis -->
+      <div class="inner-panel" id="panel-masters">
+        <div class="table-wrap">
+          <table class="phd-table">
+            <thead><tr>
+              <th>#</th><th>Name</th><th>Thesis Title</th>
+              <th>My Role</th><th>Co-Supervisor</th><th>Status</th>
+            </tr></thead>
+            <tbody id="mastersBody">
+              <tr><td colspan="6" class="loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Research Assistants -->
+      <div class="inner-panel" id="panel-ra">
+        <div class="table-wrap">
+          <table class="phd-table">
+            <thead><tr>
+              <th>#</th><th>Name</th><th>Research Title / Area</th>
+              <th>Period</th><th>Status</th>
+            </tr></thead>
+            <tbody id="raBody">
+              <tr><td colspan="5" class="loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Research Associates -->
+      <div class="inner-panel" id="panel-rassoc">
+        <div class="table-wrap">
+          <table class="phd-table">
+            <thead><tr>
+              <th>#</th><th>Name</th><th>Research Title / Area</th>
+              <th>Period</th><th>Status</th>
+            </tr></thead>
+            <tbody id="rassocBody">
+              <tr><td colspan="5" class="loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
