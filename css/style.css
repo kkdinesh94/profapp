@@ -344,6 +344,11 @@ a:hover { text-decoration: underline; }
   text-decoration: none; background: var(--red-bg);
 }
 .contact-bar-icon { font-size: 1rem; line-height: 1; }
+.contact-bar-address {
+  width: 100%; text-align: center; margin-top: 10px;
+  font-size: 0.78rem; color: var(--ink-3);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
 
 /* ── Home page contact sidebar ── */
 .home-contact { list-style: none; }

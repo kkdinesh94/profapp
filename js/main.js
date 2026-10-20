@@ -241,39 +241,84 @@ async function loadConfig() {
   if (cfg.photo)
     document.getElementById('heroPhoto').innerHTML = `<img src="${cfg.photo}" alt="${cfg.name}">`;
 
-  // Contact links — used in both home page sidebar and Contact page
-  function buildLinks(el, links) {
-    links.forEach(([icon, label, href]) => {
-      el.insertAdjacentHTML('beforeend', `
+  // contact links are now loaded from Contact.json — see loadContact()
+}
+
+// ── Contact (from Excel Contact sheet) ───────────────────
+async function loadContact() {
+  const ct = await fetchJson('Contact.json');
+
+  // Icon + display label + href builder for each known key
+  const FIELDS = [
+    { keys: ['Email'],       icon: '✉',  label: v => v,               href: v => `mailto:${v}` },
+    { keys: ['Email2'],      icon: '✉',  label: v => v,               href: v => `mailto:${v}` },
+    { keys: ['Phone'],       icon: '📞', label: v => v,               href: v => `tel:${v.replace(/\s/g,'')}` },
+    { keys: ['Scholar'],     icon: '🎓', label: () => 'Google Scholar', href: v => v },
+    { keys: ['ORCID'],       icon: '🆔', label: () => 'ORCID',         href: v => v },
+    { keys: ['LinkedIn'],    icon: '💼', label: () => 'LinkedIn',      href: v => v },
+    { keys: ['Researchgate'],icon: '🔬', label: () => 'ResearchGate',  href: v => v },
+    { keys: ['Scopus'],      icon: '📊', label: () => 'Scopus',        href: v => v },
+  ];
+
+  const items = [];
+  FIELDS.forEach(f => {
+    f.keys.forEach(k => {
+      const v = clean(ct[k]);
+      if (v) items.push({ icon: f.icon, label: f.label(v), href: f.href(v) });
+    });
+  });
+
+  // Home sidebar (small list)
+  const homeEl = document.getElementById('homeContactLinks');
+  if (homeEl) {
+    items.forEach(({ icon, label, href }) => {
+      homeEl.insertAdjacentHTML('beforeend', `
         <li><a href="${href}" target="_blank" rel="noopener">
           <span class="contact-icon">${icon}</span>${label}
         </a></li>`);
     });
   }
-  const links = [];
-  if (cfg.email)           links.push(['✉',  cfg.email,          `mailto:${cfg.email}`]);
-  if (cfg.phone)           links.push(['📞', cfg.phone,           `tel:${cfg.phone}`]);
-  if (cfg.googleScholar)   links.push(['🎓', 'Google Scholar',   cfg.googleScholar]);
-  if (cfg.orcid)           links.push(['🆔', 'ORCID',            cfg.orcid]);
-  if (cfg.linkedin)        links.push(['💼', 'LinkedIn',         cfg.linkedin]);
-  if (cfg.researchgate)    links.push(['🔬', 'ResearchGate',     cfg.researchgate]);
-  if (cfg.officialWebsite) links.push(['🌐', 'Official Website', cfg.officialWebsite]);
 
-  const homeEl    = document.getElementById('homeContactLinks');
-  const contactEl = document.getElementById('contactLinks');
-  if (homeEl)    buildLinks(homeEl,    links);
-  if (contactEl) buildLinks(contactEl, links);
-
-  // Bottom contact bar on home page
+  // Bottom contact bar (pill buttons)
   const barEl = document.getElementById('contactBar');
   if (barEl) {
-    links.forEach(([icon, label, href]) => {
+    items.forEach(({ icon, label, href }) => {
       barEl.insertAdjacentHTML('beforeend', `
         <a href="${href}" class="contact-bar-item" target="_blank" rel="noopener">
           <span class="contact-bar-icon">${icon}</span>
           <span>${label}</span>
         </a>`);
     });
+
+    // Address block below the pills
+    const addr = clean(ct['Address']);
+    if (addr) {
+      barEl.insertAdjacentHTML('afterend', `
+        <div class="contact-bar-address">
+          <span class="contact-bar-icon">📍</span>
+          ${addr.replace(/\n/g, ' &nbsp;·&nbsp; ')}
+        </div>`);
+    }
+  }
+
+  // Contact page links
+  const contactEl = document.getElementById('contactLinks');
+  if (contactEl) {
+    items.forEach(({ icon, label, href }) => {
+      contactEl.insertAdjacentHTML('beforeend', `
+        <li><a href="${href}" target="_blank" rel="noopener">
+          <span class="contact-icon">${icon}</span>${label}
+        </a></li>`);
+    });
+  }
+
+  // Contact page address
+  const instEl = document.getElementById('contactInst');
+  if (instEl && ct['Address']) {
+    const cfg = await fetchJson('config.json').catch(() => ({}));
+    instEl.innerHTML =
+      `${ct['Name'] || cfg.name || ''}<br>` +
+      ct['Address'].replace(/\n/g, '<br>');
   }
 }
 
@@ -635,6 +680,7 @@ function initInnerTabs() {
   try { await loadConfig(); } catch (e) { console.warn('Config:', e); }
 
   await Promise.all([
+    loadContact(),
     loadPublications(), loadChapters(),
     loadProjects(),     loadConferences(),
     loadTeam(),         loadExperience()
