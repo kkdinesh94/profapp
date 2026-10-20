@@ -263,6 +263,18 @@ async function loadConfig() {
   const contactEl = document.getElementById('contactLinks');
   if (homeEl)    buildLinks(homeEl,    links);
   if (contactEl) buildLinks(contactEl, links);
+
+  // Bottom contact bar on home page
+  const barEl = document.getElementById('contactBar');
+  if (barEl) {
+    links.forEach(([icon, label, href]) => {
+      barEl.insertAdjacentHTML('beforeend', `
+        <a href="${href}" class="contact-bar-item" target="_blank" rel="noopener">
+          <span class="contact-bar-icon">${icon}</span>
+          <span>${label}</span>
+        </a>`);
+    });
+  }
 }
 
 // ── Publications ──────────────────────────────────────────
