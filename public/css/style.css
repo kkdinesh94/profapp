@@ -77,7 +77,9 @@ a:hover { text-decoration: underline; }
 .nav-brand {
   font-family: 'Lora', serif; font-size: 0.95rem;
   color: var(--ink); white-space: nowrap; font-weight: 600; flex-shrink: 0;
+  text-decoration: none;
 }
+.nav-brand:hover { text-decoration: none; color: var(--red); }
 .nav-links { display: flex; gap: 2px; list-style: none; }
 .nav-links a {
   color: var(--ink-3); padding: 5px 11px; border-radius: 3px;

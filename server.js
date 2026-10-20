@@ -9,7 +9,14 @@ try { generateAllPublicJson(); } catch (e) { console.warn('JSON generation skipp
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    /^http:\/\/localhost(:\d+)?$/,
+    /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+    'https://kkdinesh94.github.io'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
