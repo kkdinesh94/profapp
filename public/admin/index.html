@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel – ProfApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* ── Reset & Variables ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1b3a6e;--navy-dk:#122b54;--gold:#c9952c;
+  --blue:#2d5f8a;--bg:#f0f2f7;--card:#fff;
+  --text:#2c3e50;--muted:#6c757d;--border:#dee2e6;
+  --success:#27ae60;--danger:#e74c3c;--warning:#f39c12;
+  --sidebar:240px;--radius:8px;
+  --shadow:0 2px 12px rgba(27,58,110,.10);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* ── Login Screen ── */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:linear-gradient(135deg,var(--navy-dk),var(--navy) 60%,var(--blue));
+}
+.login-box{background:#fff;border-radius:12px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.login-box h1{font-size:1.4rem;color:var(--navy);margin-bottom:4px;}
+.login-box p{color:var(--muted);font-size:.85rem;margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-weight:600;font-size:.82rem;margin-bottom:5px;color:var(--text);}
+.form-group input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:.9rem;outline:none;transition:.2s;}
+.form-group input:focus{border-color:var(--navy);}
+.btn-login{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s;}
+.btn-login:hover{background:var(--navy-dk);}
+#loginError{color:var(--danger);font-size:.82rem;margin-top:8px;display:none;}
+
+/* ── App Shell ── */
+#appShell{display:none;min-height:100vh;}
+
+/* Sidebar */
+#sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);
+  background:var(--navy-dk);z-index:200;overflow-y:auto;
+  transition:transform .3s;display:flex;flex-direction:column;
+}
+#sidebar .sidebar-header{
+  padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;gap:10px;
+}
+#sidebar .sidebar-header span{color:#fff;font-weight:700;font-size:.95rem;}
+.sidebar-nav{flex:1;padding:10px 0;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;color:rgba(255,255,255,.75);
+  cursor:pointer;font-size:.85rem;border-radius:0;
+  transition:.15s;border-left:3px solid transparent;
+}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--gold);}
+.nav-item .nav-icon{font-size:1rem;width:20px;text-align:center;}
+.sidebar-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,.1);}
+.btn-logout{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:.83rem;width:100%;transition:.2s;}
+.btn-logout:hover{background:rgba(231,76,60,.3);color:#fff;}
+
+/* Topbar */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar);right:0;height:56px;
+  background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;
+  z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.05);gap:12px;
+}
+#menuToggle{display:none;background:none;border:none;cursor:pointer;font-size:1.3rem;}
+#topbar h2{font-size:1rem;color:var(--navy);flex:1;}
+.topbar-actions{display:flex;gap:8px;}
+
+/* Content Area */
+#content{margin-left:var(--sidebar);margin-top:56px;padding:24px;min-height:calc(100vh - 56px);}
+
+/* Dashboard cards */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border-top:3px solid var(--navy);}
+.stat-card .sc-num{font-size:1.8rem;font-weight:700;color:var(--navy);}
+.stat-card .sc-lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+
+/* Sheet table */
+.sheet-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.sheet-toolbar h3{font-size:.95rem;color:var(--navy);flex:1;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:.2s;}
+.btn-primary{background:var(--navy);color:#fff;}.btn-primary:hover{background:var(--navy-dk);}
+.btn-success{background:var(--success);color:#fff;}.btn-success:hover{opacity:.88;}
+.btn-danger{background:var(--danger);color:#fff;font-size:.78rem;padding:5px 10px;}.btn-danger:hover{opacity:.88;}
+.btn-edit{background:#e8f0fe;color:var(--navy);font-size:.78rem;padding:5px 10px;}.btn-edit:hover{background:#c5d8ff;}
+.btn-sm{padding:5px 10px;font-size:.78rem;}
+.btn-outline-navy{background:transparent;border:1.5px solid var(--navy);color:var(--navy);padding:7px 14px;}
+.btn-outline-navy:hover{background:var(--navy);color:#fff;}
+
+.table-wrap{overflow-x:auto;border-radius:var(--radius);box-shadow:var(--shadow);}
+.data-table{width:100%;border-collapse:collapse;font-size:.83rem;min-width:600px;}
+.data-table th{background:var(--navy);color:#fff;padding:10px 12px;text-align:left;font-weight:600;white-space:nowrap;}
+.data-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.data-table tr:hover td{background:#f5f8ff;}
+.data-table .actions{display:flex;gap:5px;white-space:nowrap;}
+
+/* Profile form */
+.profile-form{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);}
+.profile-form h3{font-size:1rem;color:var(--navy);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{margin-bottom:0;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{display:block;font-weight:600;font-size:.79rem;margin-bottom:4px;color:var(--text);}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;padding:8px 10px;border:1.5px solid var(--border);
+  border-radius:6px;font-family:inherit;font-size:.85rem;outline:none;transition:.2s;background:#fff;
+}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--navy);}
+.form-group textarea{resize:vertical;min-height:80px;}
+
+/* Tags editor */
+.tags-editor{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;min-height:40px;cursor:text;}
+.tags-editor .tag{background:#e8f0fe;color:var(--navy);padding:3px 10px;border-radius:20px;font-size:.78rem;display:flex;align-items:center;gap:4px;}
+.tags-editor .tag button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;padding:0 1px;}
+.tags-editor input{border:none;outline:none;font-size:.85rem;min-width:120px;flex:1;background:transparent;}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:#fff;border-radius:10px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:1;}
+.modal-header h4{font-size:1rem;color:var(--navy);}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1;}
+.modal-body{padding:20px 22px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid var(--border);background:#fff;position:sticky;bottom:0;}
+.modal-form .form-group{margin-bottom:12px;}
+.modal-form .form-group label{display:block;font-weight:600;font-size:.79rem;margin-bottom:4px;color:var(--text);}
+.modal-form .form-group input,.modal-form .form-group textarea,.modal-form .form-group select{
+  width:100%;padding:8px 10px;border:1.5px solid var(--border);
+  border-radius:6px;font-family:inherit;font-size:.84rem;outline:none;transition:.2s;
+}
+.modal-form .form-group input:focus,.modal-form .form-group textarea:focus{border-color:var(--navy);}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:8px;}
+.toast-msg{padding:11px 18px;border-radius:7px;color:#fff;font-size:.85rem;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:fadeIn .3s ease;}
+.toast-success{background:var(--success);}
+.toast-error{background:var(--danger);}
+.toast-info{background:var(--blue);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Confirm dialog */
+.confirm-dialog .modal{max-width:380px;}
+
+/* Loader */
+.loader{text-align:center;padding:32px;color:var(--muted);}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #content{margin-left:0;}
+  #topbar{left:0;}
+  #menuToggle{display:block;}
+  .form-grid{grid-template-columns:1fr;}
+  .stat-cards{grid-template-columns:repeat(2,1fr);}
+  .data-table th,.data-table td{padding:8px 9px;}
+}
+  </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>🔐 Admin Panel</h1>
+    <p>Academic Portfolio Management</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="loginBtn">Sign In</button>
+    <div id="loginError">Incorrect username or password.</div>
+  </div>
+</div>
+
+<!-- App Shell -->
+<div id="appShell">
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <span>📚 ProfApp Admin</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <div class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-view="profile" onclick="switchView('profile')">
+        <span class="nav-icon">👤</span> Profile
+      </div>
+      <hr style="border-color:rgba(255,255,255,.1);margin:8px 12px;">
+      <div class="nav-item" data-view="Published" onclick="switchView('Published')">
+        <span class="nav-icon">📄</span> Published
+      </div>
+      <div class="nav-item" data-view="Book Chapter" onclick="switchView('Book Chapter')">
+        <span class="nav-icon">📖</span> Book Chapters
+      </div>
+      <div class="nav-item" data-view="Conferences" onclick="switchView('Conferences')">
+        <span class="nav-icon">🎤</span> Conferences
+      </div>
+      <div class="nav-item" data-view="Projects" onclick="switchView('Projects')">
+        <span class="nav-icon">🔬</span> Projects
+      </div>
+      <div class="nav-item" data-view="PhD Supervision" onclick="switchView('PhD Supervision')">
+        <span class="nav-icon">🎓</span> PhD Students
+      </div>
+      <div class="nav-item" data-view="Admin-Addl." onclick="switchView('Admin-Addl.')">
+        <span class="nav-icon">🏛️</span> Admin Duties
+      </div>
+      <div class="nav-item" data-view="Academic" onclick="switchView('Academic')">
+        <span class="nav-icon">🎒</span> Education
+      </div>
+      <hr style="border-color:rgba(255,255,255,.1);margin:8px 12px;">
+      <div class="nav-item" data-view="Pipeline" onclick="switchView('Pipeline')">
+        <span class="nav-icon">📥</span> Pipeline
+      </div>
+      <div class="nav-item" data-view="Ideas" onclick="switchView('Ideas')">
+        <span class="nav-icon">💡</span> Ideas
+      </div>
+      <div class="nav-item" data-view="History_record" onclick="switchView('History_record')">
+        <span class="nav-icon">🗂️</span> History
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Topbar -->
+  <header id="topbar">
+    <button id="menuToggle" onclick="toggleSidebar()">☰</button>
+    <h2 id="topbarTitle">Dashboard</h2>
+    <div class="topbar-actions">
+      <a href="/" target="_blank" class="btn btn-outline-navy btn-sm">View Site ↗</a>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main id="content">
+
+    <!-- Dashboard -->
+    <div id="view-dashboard">
+      <div class="stat-cards" id="dashCards"></div>
+      <div style="background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);">
+        <h3 style="color:var(--navy);font-size:.95rem;margin-bottom:8px;">Quick Access</h3>
+        <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+          Use the sidebar to navigate between sheets. Click <strong>+ Add Row</strong> in any sheet to add new records.
+          All changes are saved directly to <code>Work_Track.xlsx</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Profile -->
+    <div id="view-profile" style="display:none">
+      <div class="profile-form">
+        <h3>Profile Information</h3>
+        <div class="form-grid" id="profileFormGrid"></div>
+        <div style="margin-top:16px;">
+          <label style="font-weight:600;font-size:.79rem;display:block;margin-bottom:6px;">Research Interests (press Enter to add)</label>
+          <div class="tags-editor" id="tagsEditor">
+            <input type="text" id="tagInput" placeholder="Type and press Enter…">
+          </div>
+        </div>
+        <div style="margin-top:18px;display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="saveProfile()">💾 Save Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sheet views (generated dynamically) -->
+    <div id="view-sheet" style="display:none">
+      <div class="sheet-toolbar">
+        <h3 id="sheetTitle">—</h3>
+        <button class="btn btn-primary" id="addRowBtn" onclick="openAddModal()">+ Add Row</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="dataTable">
+          <thead id="dataHead"></thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Row Modal -->
+<div class="modal-backdrop" id="rowModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h4 id="modalTitle">Add Row</h4>
+      <button class="modal-close" onclick="closeModal('rowModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <form class="modal-form" id="rowForm" onsubmit="submitRow(event)"></form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-navy" onclick="closeModal('rowModal')">Cancel</button>
+      <button class="btn btn-primary" type="submit" form="rowForm">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-backdrop confirm-dialog" id="confirmModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h4>Confirm Delete</h4>
+      <button class="modal-close" onclick="closeModal('confirmModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text)">Are you sure you want to delete this row? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-navy" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   ProfApp Admin JS
+   ========================================================= */
+
+const API = '';
+let token = localStorage.getItem('profapp_token') || '';
+let currentSheet = '';
+let currentHeaders = [];
+let currentRows = [];
+let editingRowId = null;
+
+// ── Auth ─────────────────────────────────────────────────
+document.getElementById('loginBtn').onclick = login;
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+async function login() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.style.display = 'none';
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await r.json();
+    if (!r.ok) { err.style.display = 'block'; return; }
+    token = data.token;
+    localStorage.setItem('profapp_token', token);
+    showApp();
+  } catch { err.style.display = 'block'; }
+}
+
+function logout() {
+  token = '';
+  localStorage.removeItem('profapp_token');
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+async function authFetch(url, opts = {}) {
+  opts.headers = { ...(opts.headers || {}), 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+  const r = await fetch(API + url, opts);
+  if (r.status === 401) { logout(); throw new Error('Session expired'); }
+  return r;
+}
+
+// ── App init ──────────────────────────────────────────────
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  loadDashboard();
+}
+
+if (token) {
+  // Validate token on load
+  fetch('/api/config', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => { if (r.ok) showApp(); else { token = ''; localStorage.removeItem('profapp_token'); } })
+    .catch(() => {});
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+const SHEET_ICONS = {
+  'Published':'📄','Book Chapter':'📖','Conferences':'🎤','Projects':'🔬',
+  'PhD Supervision':'🎓','Admin-Addl.':'🏛️','Academic':'🎒',
+  'Pipeline':'📥','Ideas':'💡','History_record':'🗂️'
+};
+const PUBLIC_SHEETS = ['Published','Book Chapter','Conferences','Projects','PhD Supervision','Academic','Admin-Addl.'];
+
+async function loadDashboard() {
+  const cards = document.getElementById('dashCards');
+  cards.innerHTML = '<div class="loader"><div class="spinner"></div>Loading…</div>';
+  try {
+    const allSheets = Object.keys(SHEET_ICONS);
+    const results = await Promise.allSettled(
+      allSheets.map(s => authFetch('/api/data/' + encodeURIComponent(s)).then(r => r.json()))
+    );
+    cards.innerHTML = '';
+    results.forEach((res, i) => {
+      const s = allSheets[i];
+      const cnt = res.status === 'fulfilled' ? (res.value.rows || []).length : '?';
+      cards.insertAdjacentHTML('beforeend', `
+        <div class="stat-card" onclick="switchView('${s}')" style="cursor:pointer">
+          <div class="sc-num">${SHEET_ICONS[s] || '📋'} ${cnt}</div>
+          <div class="sc-lbl">${s}</div>
+        </div>`);
+    });
+  } catch (e) { cards.innerHTML = '<p style="color:var(--muted)">Failed to load.</p>'; }
+}
+
+// ── View switching ────────────────────────────────────────
+function switchView(view) {
+  // close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === view);
+  });
+
+  // Hide all views
+  document.getElementById('view-dashboard').style.display = 'none';
+  document.getElementById('view-profile').style.display = 'none';
+  document.getElementById('view-sheet').style.display = 'none';
+
+  document.getElementById('topbarTitle').textContent = view === 'dashboard' ? 'Dashboard' : view === 'profile' ? 'Profile' : view;
+
+  if (view === 'dashboard') {
+    document.getElementById('view-dashboard').style.display = 'block';
+  } else if (view === 'profile') {
+    document.getElementById('view-profile').style.display = 'block';
+    loadProfile();
+  } else {
+    document.getElementById('view-sheet').style.display = 'block';
+    document.getElementById('sheetTitle').textContent = view;
+    loadSheet(view);
+  }
+}
+
+// ── Sheet CRUD ────────────────────────────────────────────
+async function loadSheet(sheetName) {
+  currentSheet = sheetName;
+  const thead = document.getElementById('dataHead');
+  const tbody = document.getElementById('dataBody');
+  thead.innerHTML = '<tr><th colspan="20" style="text-align:center"><div class="loader" style="padding:16px"><div class="spinner"></div></div></th></tr>';
+  tbody.innerHTML = '';
+  try {
+    const r = await authFetch('/api/data/' + encodeURIComponent(sheetName));
+    const { headers, rows } = await r.json();
+    currentHeaders = headers;
+    currentRows = rows;
+
+    // Max 8 columns shown in table, rest in edit modal
+    const visibleCols = headers.slice(0, 8);
+
+    thead.innerHTML = '<tr>' + visibleCols.map(h => `<th>${h}</th>`).join('') + '<th>Actions</th></tr>';
+    tbody.innerHTML = '';
+
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="${visibleCols.length + 1}" style="text-align:center;color:var(--muted);padding:24px">No records yet. Click "+ Add Row" to start.</td></tr>`;
+      return;
+    }
+
+    rows.forEach(row => {
+      const td = visibleCols.map(h => {
+        const v = row[h];
+        const s = v !== null && v !== undefined ? String(v) : '';
+        return `<td title="${s.replace(/"/g,'&quot;')}">${s.length > 60 ? s.slice(0, 60) + '…' : s}</td>`;
+      }).join('');
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          ${td}
+          <td class="actions">
+            <button class="btn btn-edit" onclick="openEditModal('${row._id}')">✏️ Edit</button>
+            <button class="btn btn-danger" onclick="confirmDelete('${row._id}')">🗑️</button>
+          </td>
+        </tr>`);
+    });
+  } catch (e) { toast('Failed to load sheet: ' + e.message, 'error'); }
+}
+
+function openAddModal() {
+  editingRowId = null;
+  document.getElementById('modalTitle').textContent = '➕ Add Row to ' + currentSheet;
+  buildForm(null);
+  document.getElementById('rowModal').classList.add('open');
+}
+
+function openEditModal(id) {
+  editingRowId = id;
+  const row = currentRows.find(r => r._id === id);
+  if (!row) { toast('Row not found. Please refresh.', 'error'); return; }
+  document.getElementById('modalTitle').textContent = '✏️ Edit Row';
+  buildForm(row);
+  document.getElementById('rowModal').classList.add('open');
+}
+
+function buildForm(row) {
+  const form = document.getElementById('rowForm');
+  form.innerHTML = '';
+  currentHeaders.forEach(h => {
+    const val = row ? (row[h] !== null && row[h] !== undefined ? row[h] : '') : '';
+    const isLong = val && String(val).length > 80;
+    form.insertAdjacentHTML('beforeend', `
+      <div class="form-group">
+        <label>${h}</label>
+        ${isLong
+          ? `<textarea name="${h}" rows="3">${escHtml(String(val))}</textarea>`
+          : `<input type="text" name="${h}" value="${escHtml(String(val))}">`
+        }
+      </div>`);
+  });
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function submitRow(e) {
+  e.preventDefault();
+  const form = document.getElementById('rowForm');
+  const data = {};
+  new FormData(form).forEach((v, k) => { data[k] = v; });
+
+  try {
+    if (editingRowId) {
+      const r = await authFetch('/api/data/' + encodeURIComponent(currentSheet) + '/' + editingRowId, {
+        method: 'PUT', body: JSON.stringify(data)
+      });
+      if (!r.ok) throw new Error(await r.text());
+      toast('Row updated successfully!', 'success');
+    } else {
+      const r = await authFetch('/api/data/' + encodeURIComponent(currentSheet), {
+        method: 'POST', body: JSON.stringify(data)
+      });
+      if (!r.ok) throw new Error(await r.text());
+      toast('Row added successfully!', 'success');
+    }
+    closeModal('rowModal');
+    loadSheet(currentSheet);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function confirmDelete(id) {
+  document.getElementById('confirmDeleteBtn').onclick = () => deleteRow(id);
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+async function deleteRow(id) {
+  closeModal('confirmModal');
+  try {
+    const r = await authFetch('/api/data/' + encodeURIComponent(currentSheet) + '/' + id, { method: 'DELETE' });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Row deleted.', 'info');
+    loadSheet(currentSheet);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ── Profile ───────────────────────────────────────────────
+let profileData = {};
+let researchInterests = [];
+
+const PROFILE_FIELDS = [
+  { key: 'name',           label: 'Full Name',        full: false },
+  { key: 'shortName',      label: 'Short Name',       full: false },
+  { key: 'title',          label: 'Title / Designation', full: false },
+  { key: 'department',     label: 'Department',       full: false },
+  { key: 'institution',    label: 'Institution',      full: true  },
+  { key: 'institutionShort', label: 'Institution (short)', full: false },
+  { key: 'email',          label: 'Email',            full: false },
+  { key: 'phone',          label: 'Phone',            full: false },
+  { key: 'officialWebsite', label: 'Official Website', full: false },
+  { key: 'googleScholar',  label: 'Google Scholar URL', full: false },
+  { key: 'orcid',          label: 'ORCID URL',        full: false },
+  { key: 'linkedin',       label: 'LinkedIn URL',     full: false },
+  { key: 'researchgate',   label: 'ResearchGate URL', full: false },
+  { key: 'photo',          label: 'Photo URL',        full: false },
+  { key: 'cvLink',         label: 'CV Download Link', full: false },
+  { key: 'bio',            label: 'Biography',        full: true, textarea: true },
+];
+
+async function loadProfile() {
+  try {
+    const r = await fetch('/api/config');
+    profileData = await r.json();
+    researchInterests = [...(profileData.researchInterests || [])];
+
+    const grid = document.getElementById('profileFormGrid');
+    grid.innerHTML = '';
+    PROFILE_FIELDS.forEach(f => {
+      const cls = f.full ? 'form-group full' : 'form-group';
+      const val = profileData[f.key] || '';
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="${cls}">
+          <label>${f.label}</label>
+          ${f.textarea
+            ? `<textarea id="pf_${f.key}" rows="4">${escHtml(val)}</textarea>`
+            : `<input type="text" id="pf_${f.key}" value="${escHtml(val)}">`
+          }
+        </div>`);
+    });
+
+    renderTags();
+  } catch (e) { toast('Failed to load profile: ' + e.message, 'error'); }
+}
+
+function renderTags() {
+  const editor = document.getElementById('tagsEditor');
+  const input = document.getElementById('tagInput');
+  // Remove existing tags (keep input)
+  editor.querySelectorAll('.tag').forEach(t => t.remove());
+  researchInterests.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'tag';
+    el.innerHTML = `${t} <button type="button" onclick="removeTag(${i})">×</button>`;
+    editor.insertBefore(el, input);
+  });
+}
+
+function removeTag(i) {
+  researchInterests.splice(i, 1);
+  renderTags();
+}
+
+document.getElementById('tagInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const v = e.target.value.trim();
+    if (v && !researchInterests.includes(v)) {
+      researchInterests.push(v);
+      renderTags();
+    }
+    e.target.value = '';
+  }
+});
+
+async function saveProfile() {
+  const updates = {};
+  PROFILE_FIELDS.forEach(f => {
+    const el = document.getElementById('pf_' + f.key);
+    if (el) updates[f.key] = el.value;
+  });
+  updates.researchInterests = researchInterests;
+  try {
+    const r = await authFetch('/api/config', { method: 'PUT', body: JSON.stringify(updates) });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Profile saved!', 'success');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ── Modals ────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(b => {
+  b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); });
+});
+
+// ── Sidebar toggle ────────────────────────────────────────
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast-msg toast-${type}`;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── Initial view ──────────────────────────────────────────
+switchView('dashboard');
+</script>
+</body>
+</html>

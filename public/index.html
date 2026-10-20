@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academic Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <span class="nav-brand" id="nav-name">Academic Portfolio</span>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">About</a></li>
+      <li><a href="#publications">Publications</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#conferences">Conferences</a></li>
+      <li><a href="#phd">PhD Students</a></li>
+      <li><a href="#admin-resp">Responsibilities</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-photo">
+        <div class="hero-photo-placeholder" id="heroPhoto">👤</div>
+      </div>
+      <div class="hero-text">
+        <div class="hero-title" id="heroTitle">Loading…</div>
+        <h1 class="hero-name" id="heroName">—</h1>
+        <div class="hero-inst" id="heroInst">—</div>
+        <div class="hero-tags" id="heroTags"></div>
+        <div class="hero-btns" id="heroBtns">
+          <a href="#publications" class="btn btn-gold">View Publications</a>
+          <a href="#contact" class="btn btn-outline">Contact</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section id="stats">
+  <div class="container">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-item"><div class="stat-num" id="statPub">—</div><div class="stat-lbl">Journal Articles</div></div>
+      <div class="stat-item"><div class="stat-num" id="statChap">—</div><div class="stat-lbl">Book Chapters</div></div>
+      <div class="stat-item"><div class="stat-num" id="statConf">—</div><div class="stat-lbl">Conferences</div></div>
+      <div class="stat-item"><div class="stat-num" id="statProj">—</div><div class="stat-lbl">Research Projects</div></div>
+      <div class="stat-item"><div class="stat-num" id="statPhd">—</div><div class="stat-lbl">PhD Students</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" class="section">
+  <div class="container">
+    <h2 class="section-title">About</h2>
+    <p class="section-subtitle">Research interests &amp; biography</p>
+    <div class="about-grid">
+      <div>
+        <p class="about-bio" id="aboutBio">Loading…</p>
+      </div>
+      <div>
+        <h3 style="font-size:1.1rem; margin-bottom:14px; color:var(--navy);">Research Interests</h3>
+        <ul class="interests-list" id="interestsList"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Publications -->
+<section id="publications" class="section section-alt">
+  <div class="container">
+    <h2 class="section-title">Publications</h2>
+    <p class="section-subtitle">Peer-reviewed journal articles and book chapters</p>
+    <div class="pub-tabs">
+      <button class="pub-tab active" data-panel="journal">Journal Articles</button>
+      <button class="pub-tab" data-panel="chapters">Book Chapters</button>
+    </div>
+    <div class="pub-panel active" id="panel-journal">
+      <div class="loading"><div class="spinner"></div>Loading publications…</div>
+    </div>
+    <div class="pub-panel" id="panel-chapters">
+      <div class="loading"><div class="spinner"></div>Loading chapters…</div>
+    </div>
+  </div>
+</section>
+
+<!-- Projects -->
+<section id="projects" class="section">
+  <div class="container">
+    <h2 class="section-title">Research Projects</h2>
+    <p class="section-subtitle">Funded research and collaborative initiatives</p>
+    <div class="proj-grid" id="projGrid">
+      <div class="loading"><div class="spinner"></div>Loading projects…</div>
+    </div>
+  </div>
+</section>
+
+<!-- Conferences -->
+<section id="conferences" class="section section-alt">
+  <div class="container">
+    <h2 class="section-title">Conference Presentations</h2>
+    <p class="section-subtitle">International and national conference contributions</p>
+    <ul class="conf-list" id="confList">
+      <li class="loading"><div class="spinner"></div>Loading…</li>
+    </ul>
+  </div>
+</section>
+
+<!-- PhD Supervision -->
+<section id="phd" class="section">
+  <div class="container">
+    <h2 class="section-title">PhD Supervision</h2>
+    <p class="section-subtitle">Doctoral students guided as supervisor / co-supervisor</p>
+    <div class="table-wrap">
+      <table class="phd-table" id="phdTable">
+        <thead>
+          <tr>
+            <th>#</th><th>Name</th><th>Type</th><th>Research Title</th>
+            <th>Role</th><th>Co-Supervisor</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="phdBody">
+          <tr><td colspan="7" class="loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Admin Responsibilities -->
+<section id="admin-resp" class="section section-alt">
+  <div class="container">
+    <h2 class="section-title">Administrative Responsibilities</h2>
+    <p class="section-subtitle">Institutional duties and committee memberships</p>
+    <div class="admin-grid" id="adminGrid">
+      <div class="loading"><div class="spinner"></div>Loading…</div>
+    </div>
+  </div>
+</section>
+
+<!-- Education -->
+<section id="education" class="section">
+  <div class="container">
+    <h2 class="section-title">Academic Background</h2>
+    <p class="section-subtitle">Educational qualifications</p>
+    <div class="edu-timeline" id="eduTimeline">
+      <div class="loading"><div class="spinner"></div>Loading…</div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="section">
+  <div class="container">
+    <h2 class="section-title">Contact</h2>
+    <p class="section-subtitle" style="color:rgba(255,255,255,0.6)">Get in touch</p>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <p id="contactBio">—</p>
+        <ul class="contact-links" id="contactLinks"></ul>
+      </div>
+      <div>
+        <h3 style="color:#fff; font-size:1.1rem; margin-bottom:16px;">Location</h3>
+        <p id="contactInst" style="color:rgba(255,255,255,0.8); font-size:0.95rem; line-height:1.7;">—</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer id="footer">
+  <div class="container">
+    <p id="footerText">—</p>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+</body>
+</html>
