@@ -3,7 +3,7 @@
    ========================================================= */
 
 const DATA  = './data';
-const PAGES = ['home','publications','projects','conferences','phd','background','contact'];
+const PAGES = ['home','publications','projects','conferences','phd','background','contact','portal'];
 
 async function fetchJson(file) {
   const r = await fetch(`${DATA}/${file}`);
@@ -20,14 +20,14 @@ function clean(v) {
 function ratingBadge(r) {
   const v = clean(r);
   if (!v) return '';
-  const cls = v === 'A*' ? 'badge-red' : v === 'A' ? 'badge-ink' : v === 'B' ? 'badge-clay' : 'badge-gray';
+  const cls = v === 'A*' ? 'badge-red' : v === 'A' ? 'badge-ink' : v === 'B' ? 'badge-moss' : 'badge-gray';
   return `<span class="badge ${cls}">ABDC ${v}</span>`;
 }
 function scopusBadge(v) {
   const s = clean(v);
   if (!s) return '';
   if (s.includes('SSCI'))                  return `<span class="badge badge-green">SSCI</span>`;
-  if (s.toLowerCase().includes('scopus'))  return `<span class="badge badge-clay">Scopus</span>`;
+  if (s.toLowerCase().includes('scopus'))  return `<span class="badge badge-moss">Scopus</span>`;
   return '';
 }
 function statusBadge(s) {
@@ -41,9 +41,48 @@ function statusBadge(s) {
   return `<span class="badge badge-ink">${v}</span>`;
 }
 
+// ── Auth helpers ──────────────────────────────────────────
+const AUTH_KEY = 'profapp_auth';
+
+function getAuth() {
+  try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || null; } catch { return null; }
+}
+function setAuth(data) {
+  localStorage.setItem(AUTH_KEY, JSON.stringify(data));
+}
+function clearAuth() {
+  localStorage.removeItem(AUTH_KEY);
+}
+function isLoggedIn() { return !!getAuth(); }
+function getRole()    { return (getAuth() || {}).role || ''; }
+
+function updateNavAuth() {
+  const auth = getAuth();
+  const loginItem  = document.getElementById('navLoginItem');
+  const authItem   = document.getElementById('navAuthItem');
+  const portalItem = document.getElementById('navPortalItem');
+
+  if (auth) {
+    loginItem.style.display  = 'none';
+    authItem.classList.add('visible');
+    document.getElementById('navUserName').textContent = auth.name || auth.username || '';
+    document.getElementById('navUserRole').textContent = auth.role || '';
+    portalItem.style.display = auth.role === 'admin' || auth.role === 'scholar' || auth.role === 'faculty'
+      ? 'block' : 'none';
+  } else {
+    loginItem.style.display  = '';
+    authItem.classList.remove('visible');
+    portalItem.style.display = 'none';
+  }
+}
+
 // ── Page router ───────────────────────────────────────────
 function showPage(pageId) {
   if (!PAGES.includes(pageId)) pageId = 'home';
+  if (pageId === 'portal' && !isLoggedIn()) {
+    openLoginModal();
+    return;
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById('page-' + pageId);
   if (page) page.classList.add('active');
@@ -51,6 +90,127 @@ function showPage(pageId) {
     a.classList.toggle('active', a.dataset.page === pageId));
   history.replaceState(null, '', '#' + pageId);
   window.scrollTo(0, 0);
+  if (pageId === 'portal') renderPortal();
+}
+
+// ── Login modal ───────────────────────────────────────────
+function openLoginModal() {
+  document.getElementById('loginModal').classList.add('open');
+  document.getElementById('loginUser').focus();
+}
+function closeLoginModal() {
+  document.getElementById('loginModal').classList.remove('open');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+async function submitLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginSubmit');
+
+  errEl.style.display = 'none';
+  btn.textContent = 'Signing in…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Invalid credentials.';
+      errEl.style.display = 'block';
+    } else {
+      setAuth({ token: data.token, role: data.role, name: data.name, username });
+      updateNavAuth();
+      closeLoginModal();
+      showPage('portal');
+    }
+  } catch (e) {
+    errEl.textContent = 'Cannot reach server. Run the local server (npm start) to login.';
+    errEl.style.display = 'block';
+  }
+
+  btn.textContent = 'Sign In';
+  btn.disabled = false;
+}
+
+// ── Portal rendering ──────────────────────────────────────
+let _portalLoaded = false;
+
+async function renderPortal() {
+  if (_portalLoaded) return;
+  _portalLoaded = true;
+
+  const auth = getAuth();
+  if (!auth) return;
+
+  document.getElementById('portalSubtitle').textContent =
+    `Welcome, ${auth.name || auth.username} (${auth.role})`;
+
+  // Pipeline
+  try {
+    const res = await fetch('/api/data/Pipeline', {
+      headers: { Authorization: `Bearer ${auth.token}` }
+    });
+    const { rows } = await res.json();
+    const listEl = document.getElementById('pipelineList');
+    listEl.innerHTML = '';
+    const valid = rows.filter(r => clean(r['Title']));
+    if (!valid.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-3);font-size:.84rem">No pipeline records.</p>';
+    } else {
+      valid.forEach(r => {
+        const title   = clean(r['Title']);
+        const jour    = clean(r['Journal']);
+        const status  = clean(r['Status']) || clean(r['Remarks']);
+        listEl.insertAdjacentHTML('beforeend', `
+          <div class="pipeline-item">
+            <div class="pipeline-title">${title}</div>
+            <div class="pipeline-meta">${jour}${status ? ' · ' + status : ''}</div>
+          </div>`);
+      });
+    }
+  } catch (e) {
+    document.getElementById('pipelineList').innerHTML =
+      '<p style="color:var(--ink-3);font-size:.84rem">Could not load pipeline data.</p>';
+  }
+
+  // Ideas — admin only
+  if (auth.role === 'admin') {
+    document.getElementById('ideasCard').style.display = '';
+    try {
+      const res = await fetch('/api/data/Ideas', {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      const { rows } = await res.json();
+      const listEl = document.getElementById('ideasList');
+      listEl.innerHTML = '';
+      const valid = rows.filter(r => clean(r['Title']) || clean(r['Idea']));
+      if (!valid.length) {
+        listEl.innerHTML = '<p style="color:var(--ink-3);font-size:.84rem">No ideas recorded.</p>';
+      } else {
+        valid.forEach(r => {
+          const idea = clean(r['Idea']) || clean(r['Title']);
+          const note = clean(r['Notes']) || clean(r['Description']);
+          listEl.insertAdjacentHTML('beforeend', `
+            <div class="pipeline-item">
+              <div class="pipeline-title">${idea}</div>
+              ${note ? `<div class="pipeline-meta">${note}</div>` : ''}
+            </div>`);
+        });
+      }
+    } catch (e) {
+      document.getElementById('ideasList').innerHTML =
+        '<p style="color:var(--ink-3);font-size:.84rem">Could not load ideas.</p>';
+    }
+  }
 }
 
 // ── Config / Hero ─────────────────────────────────────────
@@ -128,7 +288,7 @@ async function loadPublications() {
           <div class="pub-journal">${jour}${vol ? `, ${vol}` : ''}</div>
           <div class="pub-meta">
             ${ratingBadge(abdc)}${scopusBadge(scopus)}
-            ${qx ? `<span class="badge badge-clay">${qx}</span>` : ''}
+            ${qx ? `<span class="badge badge-moss">${qx}</span>` : ''}
             ${doi ? `<span class="pub-doi"><a href="https://doi.org/${doi}" target="_blank" rel="noopener">↗ DOI</a></span>` : ''}
           </div>
         </div>
@@ -329,7 +489,7 @@ async function loadExperience() {
   });
 }
 
-// ── Inner tabs (Publications / Background) ────────────────
+// ── Inner tabs ────────────────────────────────────────────
 function initInnerTabs() {
   document.querySelectorAll('.inner-tab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -345,7 +505,7 @@ function initInnerTabs() {
 
 // ── Init ──────────────────────────────────────────────────
 (async function () {
-  // Nav links
+  // Nav page links
   document.querySelectorAll('#navLinks a[data-page]').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
@@ -354,7 +514,7 @@ function initInnerTabs() {
     });
   });
 
-  // data-navto buttons (hero CTAs etc.)
+  // data-navto buttons
   document.addEventListener('click', e => {
     const el = e.target.closest('[data-navto]');
     if (el) { e.preventDefault(); showPage(el.dataset.navto); }
@@ -364,9 +524,32 @@ function initInnerTabs() {
   document.getElementById('navToggle').addEventListener('click', () =>
     document.getElementById('navLinks').classList.toggle('open'));
 
-  initInnerTabs();
+  // Login modal
+  document.getElementById('navLoginBtn').addEventListener('click', e => {
+    e.preventDefault(); openLoginModal();
+  });
+  document.getElementById('modalClose').addEventListener('click', closeLoginModal);
+  document.getElementById('loginModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeLoginModal();
+  });
+  document.getElementById('loginSubmit').addEventListener('click', submitLogin);
+  document.getElementById('loginPass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitLogin();
+  });
 
-  // Load everything upfront (data is small)
+  // Logout
+  document.getElementById('navLogoutBtn').addEventListener('click', e => {
+    e.preventDefault();
+    clearAuth();
+    _portalLoaded = false;
+    updateNavAuth();
+    showPage('home');
+  });
+
+  initInnerTabs();
+  updateNavAuth();
+
+  // Load public data
   try { await loadConfig(); } catch (e) { console.warn('Config:', e); }
 
   await Promise.all([
