@@ -1,9 +1,9 @@
 /* =========================================================
-   ProfApp — Public Portfolio JS
-   Fetches pre-generated static JSON from /data/
+   ProfApp — Multi-page portfolio JS
    ========================================================= */
 
-const DATA = './data';
+const DATA  = './data';
+const PAGES = ['home','publications','projects','conferences','phd','background','contact'];
 
 async function fetchJson(file) {
   const r = await fetch(`${DATA}/${file}`);
@@ -20,14 +20,14 @@ function clean(v) {
 function ratingBadge(r) {
   const v = clean(r);
   if (!v) return '';
-  const cls = v === 'A*' ? 'badge-red' : v === 'A' ? 'badge-ink' : v === 'B' ? 'badge-blue' : 'badge-gray';
+  const cls = v === 'A*' ? 'badge-red' : v === 'A' ? 'badge-ink' : v === 'B' ? 'badge-clay' : 'badge-gray';
   return `<span class="badge ${cls}">ABDC ${v}</span>`;
 }
 function scopusBadge(v) {
   const s = clean(v);
   if (!s) return '';
-  if (s.includes('SSCI'))            return `<span class="badge badge-green">SSCI</span>`;
-  if (s.toLowerCase().includes('scopus')) return `<span class="badge badge-blue">Scopus</span>`;
+  if (s.includes('SSCI'))                  return `<span class="badge badge-green">SSCI</span>`;
+  if (s.toLowerCase().includes('scopus'))  return `<span class="badge badge-clay">Scopus</span>`;
   return '';
 }
 function statusBadge(s) {
@@ -41,34 +41,45 @@ function statusBadge(s) {
   return `<span class="badge badge-ink">${v}</span>`;
 }
 
+// ── Page router ───────────────────────────────────────────
+function showPage(pageId) {
+  if (!PAGES.includes(pageId)) pageId = 'home';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + pageId);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('#navLinks a[data-page]').forEach(a =>
+    a.classList.toggle('active', a.dataset.page === pageId));
+  history.replaceState(null, '', '#' + pageId);
+  window.scrollTo(0, 0);
+}
+
 // ── Config / Hero ─────────────────────────────────────────
 async function loadConfig() {
   const cfg = await fetchJson('config.json');
 
   document.title = `${cfg.name} | Academic Portfolio`;
-  document.getElementById('nav-name').textContent = cfg.shortName || cfg.name;
-  document.getElementById('heroName').textContent  = cfg.name;
-  document.getElementById('heroTitle').textContent =
+  document.getElementById('nav-name').textContent   = cfg.shortName || cfg.name;
+  document.getElementById('heroName').textContent   = cfg.name;
+  document.getElementById('heroTitle').textContent  =
     [cfg.title, cfg.department].filter(Boolean).join(' · ');
-  document.getElementById('heroInst').textContent  = cfg.institution || '';
-  document.getElementById('aboutBio').textContent  = cfg.bio || '';
+  document.getElementById('heroInst').textContent   = cfg.institution || '';
+  document.getElementById('aboutBio').textContent   = cfg.bio || '';
   document.getElementById('contactBio').textContent = cfg.bio || '';
-  document.getElementById('contactInst').innerHTML =
+  document.getElementById('contactInst').innerHTML  =
     `${cfg.name}<br>${cfg.department || ''}<br>${cfg.institution || ''}` +
     (cfg.email ? `<br><a href="mailto:${cfg.email}">${cfg.email}</a>` : '');
-  document.getElementById('footerText').innerHTML =
+  document.getElementById('footerText').innerHTML   =
     `&copy; ${new Date().getFullYear()} ${cfg.name}`;
 
   if (cfg.photo)
     document.getElementById('heroPhoto').innerHTML = `<img src="${cfg.photo}" alt="${cfg.name}">`;
 
-  const tagsEl = document.getElementById('heroTags');
-  (cfg.researchInterests || []).forEach(t =>
-    tagsEl.insertAdjacentHTML('beforeend', `<span class="hero-tag">${t}</span>`));
-
-  const listEl = document.getElementById('interestsList');
-  (cfg.researchInterests || []).forEach(t =>
-    listEl.insertAdjacentHTML('beforeend', `<li>${t}</li>`));
+  (cfg.researchInterests || []).forEach(t => {
+    document.getElementById('heroTags').insertAdjacentHTML(
+      'beforeend', `<span class="hero-tag">${t}</span>`);
+    document.getElementById('interestsList').insertAdjacentHTML(
+      'beforeend', `<li>${t}</li>`);
+  });
 
   if (cfg.cvLink)
     document.getElementById('heroBtns').insertAdjacentHTML('beforeend',
@@ -77,14 +88,14 @@ async function loadConfig() {
   const cl = document.getElementById('contactLinks');
   const addLink = (icon, label, href) =>
     cl.insertAdjacentHTML('beforeend', `
-      <li><a href="${href}" target="_blank">
+      <li><a href="${href}" target="_blank" rel="noopener">
         <span class="contact-icon">${icon}</span>${label}
       </a></li>`);
-  if (cfg.email)           addLink('✉', cfg.email, `mailto:${cfg.email}`);
-  if (cfg.googleScholar)   addLink('🎓', 'Google Scholar', cfg.googleScholar);
-  if (cfg.orcid)           addLink('🆔', 'ORCID', cfg.orcid);
-  if (cfg.linkedin)        addLink('💼', 'LinkedIn', cfg.linkedin);
-  if (cfg.researchgate)    addLink('🔬', 'ResearchGate', cfg.researchgate);
+  if (cfg.email)           addLink('✉', cfg.email,           `mailto:${cfg.email}`);
+  if (cfg.googleScholar)   addLink('🎓', 'Google Scholar',   cfg.googleScholar);
+  if (cfg.orcid)           addLink('🆔', 'ORCID',            cfg.orcid);
+  if (cfg.linkedin)        addLink('💼', 'LinkedIn',         cfg.linkedin);
+  if (cfg.researchgate)    addLink('🔬', 'ResearchGate',     cfg.researchgate);
   if (cfg.officialWebsite) addLink('🌐', 'Official Website', cfg.officialWebsite);
 }
 
@@ -117,8 +128,8 @@ async function loadPublications() {
           <div class="pub-journal">${jour}${vol ? `, ${vol}` : ''}</div>
           <div class="pub-meta">
             ${ratingBadge(abdc)}${scopusBadge(scopus)}
-            ${qx ? `<span class="badge badge-blue">${qx}</span>` : ''}
-            ${doi ? `<span class="pub-doi"><a href="https://doi.org/${doi}" target="_blank">↗ DOI</a></span>` : ''}
+            ${qx ? `<span class="badge badge-clay">${qx}</span>` : ''}
+            ${doi ? `<span class="pub-doi"><a href="https://doi.org/${doi}" target="_blank" rel="noopener">↗ DOI</a></span>` : ''}
           </div>
         </div>
       </div>`);
@@ -151,7 +162,7 @@ async function loadChapters() {
           <div class="pub-authors">${auth}</div>
           <div class="pub-journal">in <em>${book}</em>${pages ? `, pp. ${pages}` : ''}</div>
           <div class="pub-meta">
-            ${doi ? `<span class="pub-doi"><a href="https://doi.org/${doi}" target="_blank">↗ DOI</a></span>` : ''}
+            ${doi ? `<span class="pub-doi"><a href="https://doi.org/${doi}" target="_blank" rel="noopener">↗ DOI</a></span>` : ''}
           </div>
         </div>
       </div>`);
@@ -216,7 +227,7 @@ async function loadConferences() {
           <div class="conf-venue">${conf}${org ? ' · ' + org : ''}</div>
           <div class="conf-meta">
             ${date ? `<span class="badge badge-gray">${date}</span>` : ''}
-            ${mode ? `<span class="badge badge-ink">${mode}</span>` : ''}
+            ${mode ? `<span class="badge badge-ink">${mode}</span>`  : ''}
           </div>
         </div>
       </li>`);
@@ -265,31 +276,6 @@ async function loadPhd() {
   document.getElementById('statPhd').textContent = valid.length;
 }
 
-// ── Admin Responsibilities ────────────────────────────────
-async function loadAdmin() {
-  const { rows } = await fetchJson('Admin-Addl.json');
-  const grid = document.getElementById('adminGrid');
-  grid.innerHTML = '';
-
-  const valid = rows.filter(r => clean(r['Duties/In-charge']));
-  if (!valid.length) { grid.innerHTML = '<p style="color:var(--ink-3)">No records found.</p>'; return; }
-
-  valid.forEach(r => {
-    const duty   = clean(r['Duties/In-charge']);
-    const inst   = clean(r['Institute']);
-    const from   = clean(r['From Date']);
-    const to     = clean(r['To Date']);
-    const period = [from, to].filter(Boolean).join(' – ');
-
-    grid.insertAdjacentHTML('beforeend', `
-      <div class="admin-card">
-        <div class="admin-role">${duty}</div>
-        <div class="admin-inst">${inst}</div>
-        ${period ? `<div class="admin-period">${period}</div>` : ''}
-      </div>`);
-  });
-}
-
 // ── Education ─────────────────────────────────────────────
 async function loadEducation() {
   const { rows } = await fetchJson('Academic.json');
@@ -308,40 +294,88 @@ async function loadEducation() {
     tl.insertAdjacentHTML('beforeend', `
       <div class="edu-item">
         <div class="edu-degree">${deg}</div>
-        <div class="edu-inst">${inst}</div>
-        ${to    ? `<div class="edu-year">${to}</div>`         : ''}
-        ${marks ? `<div class="edu-marks">${marks}%</div>`    : ''}
+        ${inst  ? `<div class="edu-inst">${inst}</div>`   : ''}
+        ${to    ? `<div class="edu-year">${to}</div>`     : ''}
+        ${marks ? `<div class="edu-marks">${marks}%</div>`: ''}
       </div>`);
   });
 }
 
-// ── Tab switching ─────────────────────────────────────────
-document.querySelectorAll('.pub-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.pub-tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.pub-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+// ── Experience / Responsibilities ─────────────────────────
+async function loadExperience() {
+  const { rows } = await fetchJson('Admin-Addl.json');
+  const list = document.getElementById('expList');
+  list.innerHTML = '';
+
+  const valid = rows.filter(r => clean(r['Duties/In-charge']));
+  if (!valid.length) { list.innerHTML = '<li style="color:var(--ink-3)">No records found.</li>'; return; }
+
+  valid.forEach(r => {
+    const duty   = clean(r['Duties/In-charge']);
+    const inst   = clean(r['Institute']);
+    const from   = clean(r['From Date']);
+    const to     = clean(r['To Date']);
+    const period = [from, to].filter(Boolean).join(' – ');
+
+    list.insertAdjacentHTML('beforeend', `
+      <li class="exp-item">
+        <div class="exp-dot"></div>
+        <div>
+          <div class="exp-role">${duty}</div>
+          ${inst   ? `<div class="exp-inst">${inst}</div>`     : ''}
+          ${period ? `<div class="exp-period">${period}</div>` : ''}
+        </div>
+      </li>`);
   });
-});
+}
 
-// ── Navbar ────────────────────────────────────────────────
-document.getElementById('navToggle').addEventListener('click', () =>
-  document.getElementById('navLinks').classList.toggle('open'));
-document.querySelectorAll('#navLinks a').forEach(a =>
-  a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open')));
-
-const _sections = document.querySelectorAll('section[id]');
-window.addEventListener('scroll', () => {
-  let cur = '';
-  _sections.forEach(s => { if (window.scrollY >= s.offsetTop - 70) cur = s.id; });
-  document.querySelectorAll('#navLinks a').forEach(a =>
-    a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
-});
+// ── Inner tabs (Publications / Background) ────────────────
+function initInnerTabs() {
+  document.querySelectorAll('.inner-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.closest('.page');
+      page.querySelectorAll('.inner-tab').forEach(b  => b.classList.remove('active'));
+      page.querySelectorAll('.inner-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = page.querySelector('#panel-' + btn.dataset.tab);
+      if (panel) panel.classList.add('active');
+    });
+  });
+}
 
 // ── Init ──────────────────────────────────────────────────
 (async function () {
+  // Nav links
+  document.querySelectorAll('#navLinks a[data-page]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      showPage(a.dataset.page);
+      document.getElementById('navLinks').classList.remove('open');
+    });
+  });
+
+  // data-navto buttons (hero CTAs etc.)
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-navto]');
+    if (el) { e.preventDefault(); showPage(el.dataset.navto); }
+  });
+
+  // Hamburger
+  document.getElementById('navToggle').addEventListener('click', () =>
+    document.getElementById('navLinks').classList.toggle('open'));
+
+  initInnerTabs();
+
+  // Load everything upfront (data is small)
   try { await loadConfig(); } catch (e) { console.warn('Config:', e); }
-  [loadPublications, loadChapters, loadProjects, loadConferences, loadPhd, loadAdmin, loadEducation]
-    .forEach(fn => fn().catch(e => console.warn(fn.name, e)));
+
+  await Promise.all([
+    loadPublications(), loadChapters(),
+    loadProjects(),     loadConferences(),
+    loadPhd(),          loadEducation(), loadExperience()
+  ].map(p => p.catch(e => console.warn(e))));
+
+  // Honour hash or default to home
+  const hash = location.hash.replace('#', '');
+  showPage(PAGES.includes(hash) ? hash : 'home');
 })();
