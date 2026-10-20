@@ -224,43 +224,45 @@ async function loadConfig() {
   const cfg = await fetchJson('config.json');
 
   document.title = `${cfg.name} | Academic Portfolio`;
-  document.getElementById('nav-name').textContent   = cfg.shortName || cfg.name;
-  document.getElementById('heroName').textContent   = cfg.name;
-  document.getElementById('heroTitle').textContent  =
-    [cfg.title, cfg.department].filter(Boolean).join(' · ');
-  document.getElementById('heroInst').textContent   = cfg.institution || '';
+  document.getElementById('nav-name').textContent = cfg.shortName || cfg.name;
+  document.getElementById('heroName').textContent = cfg.shortName || cfg.name;
+
+  const credEl = document.getElementById('heroCredential');
+  if (credEl) credEl.textContent = cfg.credential || '';
+
   document.getElementById('aboutBio').textContent   = cfg.bio || '';
   document.getElementById('contactBio').textContent = cfg.bio || '';
   document.getElementById('contactInst').innerHTML  =
     `${cfg.name}<br>${cfg.department || ''}<br>${cfg.institution || ''}` +
     (cfg.email ? `<br><a href="mailto:${cfg.email}">${cfg.email}</a>` : '');
-  document.getElementById('footerText').innerHTML   =
+  document.getElementById('footerText').innerHTML =
     `&copy; ${new Date().getFullYear()} ${cfg.name}`;
 
   if (cfg.photo)
     document.getElementById('heroPhoto').innerHTML = `<img src="${cfg.photo}" alt="${cfg.name}">`;
 
-  (cfg.researchInterests || []).forEach(t => {
-    document.getElementById('interestsList').insertAdjacentHTML(
-      'beforeend', `<li>${t}</li>`);
-  });
+  // Contact links — used in both home page sidebar and Contact page
+  function buildLinks(el, links) {
+    links.forEach(([icon, label, href]) => {
+      el.insertAdjacentHTML('beforeend', `
+        <li><a href="${href}" target="_blank" rel="noopener">
+          <span class="contact-icon">${icon}</span>${label}
+        </a></li>`);
+    });
+  }
+  const links = [];
+  if (cfg.email)           links.push(['✉',  cfg.email,          `mailto:${cfg.email}`]);
+  if (cfg.phone)           links.push(['📞', cfg.phone,           `tel:${cfg.phone}`]);
+  if (cfg.googleScholar)   links.push(['🎓', 'Google Scholar',   cfg.googleScholar]);
+  if (cfg.orcid)           links.push(['🆔', 'ORCID',            cfg.orcid]);
+  if (cfg.linkedin)        links.push(['💼', 'LinkedIn',         cfg.linkedin]);
+  if (cfg.researchgate)    links.push(['🔬', 'ResearchGate',     cfg.researchgate]);
+  if (cfg.officialWebsite) links.push(['🌐', 'Official Website', cfg.officialWebsite]);
 
-  if (cfg.cvLink)
-    document.getElementById('heroBtns').insertAdjacentHTML('beforeend',
-      `<a href="${cfg.cvLink}" class="btn btn-outline" target="_blank">Download CV</a>`);
-
-  const cl = document.getElementById('contactLinks');
-  const addLink = (icon, label, href) =>
-    cl.insertAdjacentHTML('beforeend', `
-      <li><a href="${href}" target="_blank" rel="noopener">
-        <span class="contact-icon">${icon}</span>${label}
-      </a></li>`);
-  if (cfg.email)           addLink('✉', cfg.email,           `mailto:${cfg.email}`);
-  if (cfg.googleScholar)   addLink('🎓', 'Google Scholar',   cfg.googleScholar);
-  if (cfg.orcid)           addLink('🆔', 'ORCID',            cfg.orcid);
-  if (cfg.linkedin)        addLink('💼', 'LinkedIn',         cfg.linkedin);
-  if (cfg.researchgate)    addLink('🔬', 'ResearchGate',     cfg.researchgate);
-  if (cfg.officialWebsite) addLink('🌐', 'Official Website', cfg.officialWebsite);
+  const homeEl    = document.getElementById('homeContactLinks');
+  const contactEl = document.getElementById('contactLinks');
+  if (homeEl)    buildLinks(homeEl,    links);
+  if (contactEl) buildLinks(contactEl, links);
 }
 
 // ── Publications ──────────────────────────────────────────
@@ -340,7 +342,7 @@ async function loadProjects() {
   const grid = document.getElementById('projGrid');
   grid.innerHTML = '';
 
-  const INACTIVE = ['reject', 'not shortlist', 'not selected', 'declined'];
+  const INACTIVE = ['reject', 'not shortlist', 'not selected', 'declined', 'submitted'];
   const valid = rows.filter(r => {
     if (!clean(r['Project Title'])) return false;
     const s = String(r['Status'] || '').toLowerCase();
@@ -623,7 +625,7 @@ function initInnerTabs() {
   await Promise.all([
     loadPublications(), loadChapters(),
     loadProjects(),     loadConferences(),
-    loadTeam(),         loadEducation(), loadExperience()
+    loadTeam(),         loadExperience()
   ].map(p => p.catch(e => console.warn(e))));
 
   // Honour hash or default to home
