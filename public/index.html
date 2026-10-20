@@ -26,6 +26,15 @@
       <li><a href="#phd"          data-page="phd">PhD Students</a></li>
       <li><a href="#background"   data-page="background">Background</a></li>
       <li><a href="#contact"      data-page="contact">Contact</a></li>
+      <li id="navPortalItem" style="display:none"><a href="#portal" data-page="portal">Portal</a></li>
+      <li id="navLoginItem"><a href="#" id="navLoginBtn" class="nav-login">Login</a></li>
+      <li id="navAuthItem" class="nav-auth">
+        <span class="nav-user">
+          <span id="navUserName">—</span>
+          <span class="role-tag" id="navUserRole"></span>
+        </span>
+        <a href="#" id="navLogoutBtn" class="nav-logout">Logout</a>
+      </li>
     </ul>
   </div>
 </nav>
@@ -253,6 +262,64 @@
   </footer>
 
 </div><!-- /page-contact -->
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: PORTAL (private — login required)
+     ══════════════════════════════════════════════════════ -->
+<div class="page" id="page-portal">
+
+  <div class="page-header">
+    <div class="container">
+      <h2 class="page-title"><span>Portal</span></h2>
+      <p class="page-sub" id="portalSubtitle">Private area</p>
+    </div>
+  </div>
+
+  <div class="page-body">
+    <div class="container">
+      <div class="portal-grid" id="portalGrid">
+        <div class="portal-card">
+          <div class="portal-card-title">Pipeline — Under Review</div>
+          <div id="pipelineList">
+            <div class="loading"><div class="spinner"></div>Loading…</div>
+          </div>
+        </div>
+        <div class="portal-card" id="ideasCard" style="display:none">
+          <div class="portal-card-title">Ideas &amp; Notes</div>
+          <div id="ideasList">
+            <div class="loading"><div class="spinner"></div>Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-portal -->
+
+<!-- ══════════════════════════════════════════════════════
+     LOGIN MODAL
+     ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-label="Login">
+  <div class="modal">
+    <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+    <h2 class="modal-title">Sign In</h2>
+    <p class="modal-sub">Admin · Faculty · Scholar access</p>
+    <div class="modal-error" id="loginError"></div>
+    <div class="form-group">
+      <label class="form-label" for="loginUser">Username</label>
+      <input class="form-input" type="text" id="loginUser" autocomplete="username" placeholder="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="loginPass">Password</label>
+      <input class="form-input" type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn btn-dark" id="loginSubmit" style="width:100%">Sign In</button>
+    <p class="modal-note">
+      Login requires the local server running at <strong>localhost:3000</strong>.<br>
+      Contact the administrator to obtain your credentials.
+    </p>
+  </div>
+</div>
 
 <script src="./js/main.js"></script>
 </body>

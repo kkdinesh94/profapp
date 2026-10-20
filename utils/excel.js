@@ -28,7 +28,8 @@ const SHEET_CONFIG = {
   'Projects':         { headerRow: 0 },
   'Conferences':      { headerRow: 0 },
   'Ideas':            { headerRow: 0 },
-  'History_record':   { headerRow: 0 }
+  'History_record':   { headerRow: 0 },
+  'Users':            { headerRow: 0 }
 };
 
 // Sheets visible publicly (no auth required for GET)
