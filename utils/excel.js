@@ -183,11 +183,42 @@ function generateSheetJson(sheetName) {
   );
 }
 
+function generateContactJson() {
+  const wb = xlsx.readFile(EXCEL_PATH, { cellDates: false });
+  const ws = wb.Sheets['Contact'];
+  if (!ws) return;
+
+  const raw = xlsx.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  const contact = {};
+  const addressLines = [];
+
+  raw.forEach(row => {
+    const key = String(row[0] || '').trim();
+    if (!key) return;
+
+    const v1 = String(row[1] || '').trim();
+    const v2 = String(row[2] || '').trim();
+
+    if (key.startsWith('Address Line')) {
+      if (v1) addressLines.push(v1);
+      return;
+    }
+    if (v1) contact[key] = v1;
+    if (v2) contact[key + '2'] = v2;
+  });
+
+  if (addressLines.length) contact['Address'] = addressLines.join('\n');
+
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(path.join(DATA_DIR, 'Contact.json'), JSON.stringify(contact, null, 2));
+}
+
 function generateAllPublicJson() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   PUBLIC_SHEETS.forEach(s => generateSheetJson(s));
+  generateContactJson();
   fs.copyFileSync(path.join(__dirname, '..', 'config.json'), path.join(DATA_DIR, 'config.json'));
   console.log('Static JSON files generated in public/data/');
 }
 
-module.exports = { getSheetNames, readSheet, updateRow, addRow, deleteRow, PUBLIC_SHEETS, SHEET_FILES, generateSheetJson, generateAllPublicJson };
+module.exports = { getSheetNames, readSheet, updateRow, addRow, deleteRow, PUBLIC_SHEETS, SHEET_FILES, generateSheetJson, generateContactJson, generateAllPublicJson };
