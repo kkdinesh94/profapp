@@ -6,7 +6,7 @@
   <title>Academic Portfolio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -36,15 +36,15 @@
   <div class="container">
     <div class="hero-inner">
       <div class="hero-photo">
-        <div class="hero-photo-placeholder" id="heroPhoto">👤</div>
+        <div class="hero-photo-placeholder" id="heroPhoto">人</div>
       </div>
       <div class="hero-text">
-        <div class="hero-title" id="heroTitle">Loading…</div>
-        <h1 class="hero-name" id="heroName">—</h1>
-        <div class="hero-inst" id="heroInst">—</div>
+        <div class="hero-meta" id="heroTitle">Faculty · Department of Management Studies</div>
+        <h1 class="hero-name" id="heroName">Loading…</h1>
+        <div class="hero-inst" id="heroInst"></div>
         <div class="hero-tags" id="heroTags"></div>
         <div class="hero-btns" id="heroBtns">
-          <a href="#publications" class="btn btn-gold">View Publications</a>
+          <a href="#publications" class="btn btn-dark">View Publications</a>
           <a href="#contact" class="btn btn-outline">Contact</a>
         </div>
       </div>
@@ -53,9 +53,9 @@
 </section>
 
 <!-- Stats -->
-<section id="stats">
+<div id="stats">
   <div class="container">
-    <div class="stats-grid" id="statsGrid">
+    <div class="stats-row">
       <div class="stat-item"><div class="stat-num" id="statPub">—</div><div class="stat-lbl">Journal Articles</div></div>
       <div class="stat-item"><div class="stat-num" id="statChap">—</div><div class="stat-lbl">Book Chapters</div></div>
       <div class="stat-item"><div class="stat-num" id="statConf">—</div><div class="stat-lbl">Conferences</div></div>
@@ -63,19 +63,19 @@
       <div class="stat-item"><div class="stat-num" id="statPhd">—</div><div class="stat-lbl">PhD Students</div></div>
     </div>
   </div>
-</section>
+</div>
 
 <!-- About -->
-<section id="about" class="section">
+<section id="about" class="section section-alt">
   <div class="container">
-    <h2 class="section-title">About</h2>
-    <p class="section-subtitle">Research interests &amp; biography</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>About</span></h2>
+      <p class="section-sub">Biography &amp; research interests</p>
+    </div>
     <div class="about-grid">
+      <p class="about-bio" id="aboutBio">Loading…</p>
       <div>
-        <p class="about-bio" id="aboutBio">Loading…</p>
-      </div>
-      <div>
-        <h3 style="font-size:1.1rem; margin-bottom:14px; color:var(--navy);">Research Interests</h3>
+        <h3 style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-3);margin-bottom:14px;">Research Interests</h3>
         <ul class="interests-list" id="interestsList"></ul>
       </div>
     </div>
@@ -83,39 +83,45 @@
 </section>
 
 <!-- Publications -->
-<section id="publications" class="section section-alt">
+<section id="publications" class="section">
   <div class="container">
-    <h2 class="section-title">Publications</h2>
-    <p class="section-subtitle">Peer-reviewed journal articles and book chapters</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>Publications</span></h2>
+      <p class="section-sub">Peer-reviewed journal articles and book chapters</p>
+    </div>
     <div class="pub-tabs">
       <button class="pub-tab active" data-panel="journal">Journal Articles</button>
       <button class="pub-tab" data-panel="chapters">Book Chapters</button>
     </div>
     <div class="pub-panel active" id="panel-journal">
-      <div class="loading"><div class="spinner"></div>Loading publications…</div>
+      <div class="loading"><div class="spinner"></div>Loading…</div>
     </div>
     <div class="pub-panel" id="panel-chapters">
-      <div class="loading"><div class="spinner"></div>Loading chapters…</div>
+      <div class="loading"><div class="spinner"></div>Loading…</div>
     </div>
   </div>
 </section>
 
 <!-- Projects -->
-<section id="projects" class="section">
+<section id="projects" class="section section-alt">
   <div class="container">
-    <h2 class="section-title">Research Projects</h2>
-    <p class="section-subtitle">Funded research and collaborative initiatives</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>Research Projects</span></h2>
+      <p class="section-sub">Funded research and collaborative initiatives</p>
+    </div>
     <div class="proj-grid" id="projGrid">
-      <div class="loading"><div class="spinner"></div>Loading projects…</div>
+      <div class="loading"><div class="spinner"></div>Loading…</div>
     </div>
   </div>
 </section>
 
 <!-- Conferences -->
-<section id="conferences" class="section section-alt">
+<section id="conferences" class="section">
   <div class="container">
-    <h2 class="section-title">Conference Presentations</h2>
-    <p class="section-subtitle">International and national conference contributions</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>Conference Presentations</span></h2>
+      <p class="section-sub">International and national conference contributions</p>
+    </div>
     <ul class="conf-list" id="confList">
       <li class="loading"><div class="spinner"></div>Loading…</li>
     </ul>
@@ -123,12 +129,14 @@
 </section>
 
 <!-- PhD Supervision -->
-<section id="phd" class="section">
+<section id="phd" class="section section-alt">
   <div class="container">
-    <h2 class="section-title">PhD Supervision</h2>
-    <p class="section-subtitle">Doctoral students guided as supervisor / co-supervisor</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>PhD Supervision</span></h2>
+      <p class="section-sub">Doctoral students guided as supervisor / co-supervisor</p>
+    </div>
     <div class="table-wrap">
-      <table class="phd-table" id="phdTable">
+      <table class="phd-table">
         <thead>
           <tr>
             <th>#</th><th>Name</th><th>Type</th><th>Research Title</th>
@@ -144,10 +152,12 @@
 </section>
 
 <!-- Admin Responsibilities -->
-<section id="admin-resp" class="section section-alt">
+<section id="admin-resp" class="section">
   <div class="container">
-    <h2 class="section-title">Administrative Responsibilities</h2>
-    <p class="section-subtitle">Institutional duties and committee memberships</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>Administrative Responsibilities</span></h2>
+      <p class="section-sub">Institutional duties and committee memberships</p>
+    </div>
     <div class="admin-grid" id="adminGrid">
       <div class="loading"><div class="spinner"></div>Loading…</div>
     </div>
@@ -155,10 +165,12 @@
 </section>
 
 <!-- Education -->
-<section id="education" class="section">
+<section id="education" class="section section-alt">
   <div class="container">
-    <h2 class="section-title">Academic Background</h2>
-    <p class="section-subtitle">Educational qualifications</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>Academic Background</span></h2>
+      <p class="section-sub">Educational qualifications</p>
+    </div>
     <div class="edu-timeline" id="eduTimeline">
       <div class="loading"><div class="spinner"></div>Loading…</div>
     </div>
@@ -168,16 +180,18 @@
 <!-- Contact -->
 <section id="contact" class="section">
   <div class="container">
-    <h2 class="section-title">Contact</h2>
-    <p class="section-subtitle" style="color:rgba(255,255,255,0.6)">Get in touch</p>
+    <div class="section-header">
+      <h2 class="section-title"><span>Contact</span></h2>
+      <p class="section-sub">Get in touch</p>
+    </div>
     <div class="contact-grid">
-      <div class="contact-info">
-        <p id="contactBio">—</p>
+      <div>
+        <p class="contact-bio" id="contactBio">—</p>
         <ul class="contact-links" id="contactLinks"></ul>
       </div>
-      <div>
-        <h3 style="color:#fff; font-size:1.1rem; margin-bottom:16px;">Location</h3>
-        <p id="contactInst" style="color:rgba(255,255,255,0.8); font-size:0.95rem; line-height:1.7;">—</p>
+      <div class="contact-location">
+        <h3>Location</h3>
+        <p id="contactInst">—</p>
       </div>
     </div>
   </div>
